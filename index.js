@@ -15,7 +15,7 @@ dotenv.config({path:"./.env"});
 const DB=process.env.DATABASE;
 const CLIENT=process.env.CLIENTURL;
 
-const uploadMiddleware = multer({ dest: 'uploads/' });
+const uploadMiddleware = multer({ dest: './uploads/' });
 
 const secret="adddfefeegrnnkkfknkefeef";
 
@@ -106,7 +106,8 @@ app.post('/post',uploadMiddleware.single('file'), async(req,res)=>{
     const {originalname,path}=req.file;
     const parts=originalname.split('.');
     const ext=parts[parts.length -1];
-    const newPath=path+'.'+ext;
+    let newPath="";
+    newPath=path+'.'+ext;
     fs.renameSync(path,newPath);  
 
     const {token}=req.cookies;
@@ -114,7 +115,7 @@ app.post('/post',uploadMiddleware.single('file'), async(req,res)=>{
         if(err)throw err;
         const {title,summary,content}=req.body;
 
-        const postDoc=await Post.create({
+        const postDoc=await Post.insertOne({
             title,
             summary,
             content,
@@ -126,6 +127,7 @@ app.post('/post',uploadMiddleware.single('file'), async(req,res)=>{
 
     });
 
+    res.json("Unsuccessful Upload");
     
 });
 
