@@ -13,7 +13,7 @@ const dotenv=require('dotenv');
 dotenv.config({path:"./.env"});
 
 const DB=process.env.DATABASE;
-const CLIENT=process.env.CLIENTURL
+const CLIENT=process.env.CLIENTURL;
 
 const uploadMiddleware = multer({ dest: 'uploads/' });
 
