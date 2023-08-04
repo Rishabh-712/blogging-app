@@ -61,12 +61,11 @@ app.post('/login',async(req,res)=>{
         
         if(passCheck){
             //logged in
-            jwt.sign({email,id:userDoc._id},secret,{},(err,token)=>{
-                if(err) throw err;
-                res.cookie('token',token).json({
-                    id:userDoc._id,
-                    email,
-                });
+            jwt.sign({email,id:userDoc._id},secret,{expiresIn: '72h'},(err,token)=>{
+                if(err) console.log(err);
+                res.cookie('token',token,{httpOnly:true});
+                res.json({id:userDoc._id,
+                    email});
             }); 
 
         }else {
@@ -75,11 +74,7 @@ app.post('/login',async(req,res)=>{
         
     }else{
         res.status(400).json('wrong credentials');
-    }
-    
-    
-    
-    
+    }   
 
 });
 
@@ -87,11 +82,25 @@ app.post('/login',async(req,res)=>{
 
 app.get('/profile',(req,res)=>{
     const {token}=req.cookies;
+    console.log(token);
+    if(typeof token ==='undefined'){
 
-    jwt.verify(token,secret,{},(err,info)=>{
-        if(err) throw err;
-        res.json(info);
-    });
+        res.json({});
+
+    }else{
+
+        jwt.verify(token,secret,(err,info)=>{
+            if(err){
+                console.log('Error can not verify token');
+                res.sendStatus(403);
+            }else{
+                res.json(info);
+            }
+            
+        });
+
+    }
+    
 
 });
 
@@ -111,23 +120,33 @@ app.post('/post',uploadMiddleware.single('file'), async(req,res)=>{
     fs.renameSync(path,newPath);  
 
     const {token}=req.cookies;
-    jwt.verify(token,secret,{},async(err,info)=>{
-        if(err)throw err;
-        const {title,summary,content}=req.body;
+    if(typeof token ==='undefined'){
 
-        const postDoc=await Post.insertOne({
-            title,
-            summary,
-            content,
-            cover:newPath,
-            email:info.id,
-        }); 
+        res.json({ tok: 'false' });
 
-        res.json(postDoc);
+    }else{
 
-    });
+        jwt.verify(token,secret,async(err,info)=>{
+            if(err)throw err;
+            const {title,summary,content}=req.body;
+    
+            const postDoc=await Post.insertOne({
+                title,
+                summary,
+                content,
+                cover:newPath,
+                email:info.id,
+            }); 
+    
+            res.json(postDoc);
+    
+        });
 
-    res.json("Unsuccessful Upload");
+    }
+    
+    
+
+    
     
 });
 
@@ -141,24 +160,33 @@ app.put('/post',uploadMiddleware.single('file'),async(req,res)=>{
         fs.renameSync(path,newPath); 
     }
     const {token}=req.cookies;
-     
-    jwt.verify(token,secret,{},async(err,info)=>{
 
-        if(err) throw err;
+    if(typeof token ==='undefined'){
+        res.json({ tok: 'false' });
+        console.log("updating is not allowed");
+    }else{
 
-        const {id,title,summary,content}=req.body;
-        const postDoc=await Post.findById(id);
-        const isAuthor=JSON.stringify(postDoc.email)===JSON.stringify(info.id); 
-        if(!isAuthor){
-           return res.status(400).json("You are not the author");
-        }
-        await postDoc.updateOne({
-            title,summary,content,cover:newPath?newPath:postDoc.cover,
+        jwt.verify(token,secret,{},async(err,info)=>{
+
+            if(err) throw err;
+    
+            const {id,title,summary,content}=req.body;
+            const postDoc=await Post.findById(id);
+            const isAuthor=JSON.stringify(postDoc.email)===JSON.stringify(info.id); 
+            if(!isAuthor){
+               return res.status(400).json("You are not the author");
+            }
+            await postDoc.updateOne({
+                title,summary,content,cover:newPath?newPath:postDoc.cover,
+            });
+    
+            res.json(postDoc);
+    
         });
 
-        res.json(postDoc);
-
-    });
+    }
+     
+    
 
 });
 
