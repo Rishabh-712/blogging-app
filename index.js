@@ -59,6 +59,7 @@ app.post('/login',async(req,res)=>{
     const {email,password}=req.body;
 
     const userDoc=await User.findOne({email});
+    
     if(userDoc!=null){
 
         const passCheck=bcrypt.compareSync(password, userDoc.password);
@@ -67,7 +68,8 @@ app.post('/login',async(req,res)=>{
             //logged in
             jwt.sign({email,id:userDoc._id},secret,{expiresIn: '72h'},(err,token)=>{
                 if(err) console.log(err);
-                res.cookie('token',token,{httpOnly:false});
+                // res.cookie('token',token,{httpOnly:false});
+                res.setHeader('Set-Cookie' ,`token=${token}`);
                 res.json({id:userDoc._id,
                     email});
             }); 
