@@ -70,7 +70,8 @@ app.post('/login',async(req,res)=>{
             jwt.sign({email,id:userDoc._id},secret,{expiresIn: '72h'},(err,token)=>{
                 if(err) console.log(err);
                 // res.cookie('token',token,{httpOnly:false});
-                res.setHeader('Set-Cookie' ,`token=${token}`);
+                // res.setHeader('Set-Cookie' ,`token=${token}`);
+                res.cookie('token', token, { domain: 'https://the-saint-blogging.onrender.com'});
                 res.json({id:userDoc._id,
                     email});
             }); 
