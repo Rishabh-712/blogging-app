@@ -71,9 +71,8 @@ app.post('/login',async(req,res)=>{
                 if(err) console.log(err);
                 // res.cookie('token',token,{httpOnly:false});
                 // res.setHeader('Set-Cookie' ,`token=${token}`);
-                res.cookie('token', token, { domain: 'https://the-saint-blogging.onrender.com'});
-                res.json({id:userDoc._id,
-                    email});
+                // res.cookie('token', token, { domain: 'https://the-saint-blogging.onrender.com'});
+                    res.json({id:userDoc._id,email,token});
             }); 
 
         }else {
