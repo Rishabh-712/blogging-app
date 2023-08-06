@@ -27,7 +27,6 @@ app.use(cors({credentials:true,origin:CLIENT}));
 app.use("*",cors({
     origin:true,
     credentials:true,
-    exposedHeaders: ["set-cookie"]
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -60,7 +59,6 @@ app.post('/login',async(req,res)=>{
     const {email,password}=req.body;
 
     const userDoc=await User.findOne({email});
-    
     if(userDoc!=null){
 
         const passCheck=bcrypt.compareSync(password, userDoc.password);
@@ -69,10 +67,10 @@ app.post('/login',async(req,res)=>{
             //logged in
             jwt.sign({email,id:userDoc._id},secret,{expiresIn: '72h'},(err,token)=>{
                 if(err) console.log(err);
-                // res.cookie('token',token,{httpOnly:false});
+                // res.cookie('token',token,{httpOnly:true});
                 // res.setHeader('Set-Cookie' ,`token=${token}`);
                 // res.cookie('token', token, { domain: 'https://the-saint-blogging.onrender.com'});
-                    res.json({id:userDoc._id,email,token});
+                res.json({id:userDoc._id,email,token});
             }); 
 
         }else {
@@ -88,7 +86,7 @@ app.post('/login',async(req,res)=>{
 //////////////////////////////////////////////////////////////////////
 
 app.get('/profile',(req,res)=>{
-    const {token}=req.cookies;
+    const {token}=req.cookie;
     console.log(token);
     if(typeof token ==='undefined'){
 
@@ -126,7 +124,7 @@ app.post('/post',uploadMiddleware.single('file'), async(req,res)=>{
     newPath=path+'.'+ext;
     fs.renameSync(path,newPath);  
 
-    const {token}=req.cookies;
+    const {token}=req.body;
     if(typeof token ==='undefined'){
 
         res.json({ tok: 'false' });
@@ -166,7 +164,7 @@ app.put('/post',uploadMiddleware.single('file'),async(req,res)=>{
         const newPath=path+'.'+ext;
         fs.renameSync(path,newPath); 
     }
-    const {token}=req.cookies;
+    const {token}=req.body;
 
     if(typeof token ==='undefined'){
         res.json({ tok: 'false' });
